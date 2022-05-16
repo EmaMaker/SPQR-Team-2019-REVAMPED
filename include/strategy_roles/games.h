@@ -9,15 +9,7 @@
 #include <Arduino.h>
 #include "strategy_roles/game.h"
 #include "strategy_roles/striker.h"
-#include "strategy_roles/striker_roller.h"
-#include "strategy_roles/precision_shooter.h"
-#include "strategy_roles/pass_and_shoot.h"
-#include "strategy_roles/spot_finder.h"
-#include "strategy_roles/the_spinner.h"
-#include "strategy_roles/round_robin.h"
-#include "strategy_roles/corner_kick_2.h"
-#include "strategy_roles/corner_kick_1.h"
-// #include "strategy_roles/keeper.h"
+#include "strategy_roles/keeper.h"
 
 void initGames();
 
@@ -25,7 +17,7 @@ g_extr Game* striker;
 g_extr Game* striker_roller;
 g_extr Game* precision_shooter;
 g_extr Game* pass_and_shoot;
-// g_extr Game* keeper;
+g_extr Game* keeper;
 
 g_extr Game* tc1;
 g_extr Game* tc2;

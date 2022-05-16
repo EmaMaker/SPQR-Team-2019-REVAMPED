@@ -50,9 +50,9 @@ void DataSourceBT::send(){
 
 void DataSourceBT::update(){
   // if(!bt_bombarded && can_bombard) connect();
-  receive();
-  send();
-  if(comrade)Serial2.write(0b00000100);
+  // receive();
+  // send();
+  // if(comrade)Serial2.write(0b00000100);
 }
 
 void DataSourceBT :: test(){
