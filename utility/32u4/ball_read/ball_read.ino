@@ -41,7 +41,7 @@
 #define S9 ((PINF & 64 ) >> 6)
 #define S10 ((PINF & 128 ) >> 7)
 
-#define NCYCLES 255
+#define NCYCLES 250
 #define BROKEN  230
 #define TOO_LOW 45
 
@@ -82,7 +82,6 @@ unsigned long t = 0;
 void setup() {
   delay(1000);
 
-  Serial.begin(57600);
   Serial1.begin(57600);
 
   
@@ -191,34 +190,16 @@ void readBallInterpolation() {
   }
 }
 
-unsigned long sendtimer = 0;
-
 void sendDataInterpolation() {
-  //We must ensure that each number is expressed with three digits, adding leading zeros if necessary, to further improve transmission reliability
-  String str_angle = String((int) angle, DEC);
-  String str_distance = String(NCYCLES - (int) distance, DEC);
-
-  String sendStr_angle = "";
-  String sendStr_distance = "";
-
-  if(str_angle.length() == 1) sendStr_angle = "00" + str_angle;
-  else if(str_angle.length() == 2) sendStr_angle = "0" + str_angle;
-  else sendStr_angle = str_angle;
-  
-  if(str_distance.length() == 1) sendStr_distance = "00" + str_distance;
-  else if(str_distance.length() == 2) sendStr_distance = "0" + str_distance;
-  else sendStr_distance = str_distance;
-
-  //slow down the communciation a little bit, or it might get very messy
-  if(millis() - sendtimer > 40){
-    Serial1.print("b");
-    Serial1.print(sendStr_angle);
-    Serial1.print("-");
-    Serial1.print(sendStr_distance);
-    Serial1.print("IB");
-    sendtimer = millis();
+  if(sending){
+    sendAngle = ((byte) (angle / 2)) & 0b11111110;
+    Serial1.write(sendAngle);
+  }else{
+    sendDistance = map(distance, 0, NCYCLES, 254, 0);
+    sendDistance = sendDistance |= 0b00000001;
+    Serial1.write(sendDistance);
   }
-
+  sending = !sending;
 }
 
 void test() {
