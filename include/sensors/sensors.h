@@ -17,7 +17,6 @@
 #include "systems/lines/linesys_camera.h"
 #include "systems/position/positionsys_zone.h"
 #include "sensors/data_source_ball.h"
-#include "sensors/data_source_ball_presence.h"
 #include "sensors/data_source_bt.h"
 #include "sensors/data_source_bno055.h"
 #include "sensors/data_source_camera_conicmirror.h"
@@ -36,7 +35,6 @@ s_extr DataSourceBall* ball;
 s_extr DataSourceCameraConic* camera;
 s_extr DriveController* drive;
 s_extr DataSourceBT* bt;
-s_extr DataSourceBallPresence* ballPresence;
 
 s_extr int role;
 

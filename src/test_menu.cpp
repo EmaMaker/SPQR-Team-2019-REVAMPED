@@ -110,7 +110,7 @@ void TestMenu::testMenu()
                 DEBUG.print((char)Serial2.read());
             break;
         case 'b':
-            ballPresence->test();
+            // ballPresence->test();
             break;
         case 'r':
             drive->stopAll();
