@@ -13,6 +13,10 @@
 the new setup is the one commented, leds have to be written 
 in the 32U4 code*/
 
+#define LED_R 20
+#define LED_Y 17
+#define LED_G 13
+
 #define BUZZER 6
 #define SWITCH_SX 39
 #define SWITCH_DX 38

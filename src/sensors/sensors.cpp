@@ -2,10 +2,13 @@
 #include "sensors/sensors.h"
 
 void initSensors(){
-    pinMode(SWITCH_DX, INPUT);
-    pinMode(SWITCH_SX, INPUT);
-    pinMode(SWITCH_ID, INPUT);
-    
+    pinMode(SWITCH_1, INPUT);
+    pinMode(SWITCH_2, INPUT);
+
+    pinMode(LED_R, OUTPUT);
+    pinMode(LED_Y, OUTPUT);
+    pinMode(LED_G, OUTPUT);
+  
     drive = new DriveController(new Motor(12, 11, 4, 55), new  Motor(25, 24, 5, 135), new Motor(27, 26, 2, 225), new Motor(29, 28, 3, 305));
     // tone(BUZZER, 270, 250);
     // delay(350);
