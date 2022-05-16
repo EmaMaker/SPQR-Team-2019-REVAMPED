@@ -1,10 +1,24 @@
-# SPQR1 Team 2020
+# SPQR-Team-2019 REVAMPED
 
-SPQR1 Team 2020 Robot project repo, we are robot-makers based in ITIS G. Galilei Rome, currently competing in Soccer Lightweight league in RCJ.
+Official Code+CAD's of 2018-2019 SPQR 1st at Romecup2019, Rome Best Robot Design at Robocup2019, Sydney
 
-Code found in master and mechanics and boards in branch hardware.
+Original Team:
 
-We are: 
-  Davide Belli  [@DVDSpacca],
-  Emanuele Coletta  [@EmaMaker],
-  Marco De Amicis [@Morcock] and Siria Sannino  [@u-siri-ous].
+#include <E.Latino> 
+
+#include <A.Ghezzi>
+
+#include <E.Coletta>
+
+#include <D.Casagrande>
+
+#include <S.Sannino>
+
+#include <G.Treccape>
+
+<br>
+
+Now just a casual revamp of the old project, solving some mechanics problems and using the codebase from our [2020-2021 robot](!https://github.com/spqr-team/SPQR-Team1). Testing new techniques and serving as an opponent to newer members of the team.
+
+Currently I'm: Emanuele Coletta [[@EmaMaker](https://git.emamaker.com)] <br>
+with some help on the mechanics from: Davide Belli [@DVDSPACCA]
