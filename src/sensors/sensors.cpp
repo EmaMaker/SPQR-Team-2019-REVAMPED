@@ -26,9 +26,8 @@ void updateSensors(){
     
     compass->update();
     ball->update();
-    
-    camera->update();
-    bt->update();
+    // camera->update();
+    // bt->update();
 
-    roller->update();
+    // roller->update();
 }
