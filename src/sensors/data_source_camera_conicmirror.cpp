@@ -196,10 +196,10 @@ void DataSourceCameraConic ::computeCoordsAngles() {
     CURRENT_DATA_WRITE.xDefFix = CURRENT_DATA_WRITE.cam_xy_fixed;
   }
 
-  byte to_32u4 = 0;
-  to_32u4 |= (CURRENT_DATA_READ.ySeen);
-  to_32u4 |= (CURRENT_DATA_READ.bSeen) << 1;
-  BALL_32U4.write(to_32u4);
+  // byte to_32u4 = 0;
+  // to_32u4 |= (CURRENT_DATA_READ.ySeen);
+  // to_32u4 |= (CURRENT_DATA_READ.bSeen) << 1;
+  // BALL_32U4.write(to_32u4);
 }
 
 void DataSourceCameraConic::test(){

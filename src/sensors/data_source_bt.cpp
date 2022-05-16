@@ -1,24 +1,5 @@
 #include "sensors/data_source_bt.h"
 
-/*Currently using a master-slave setup
-One bt has been setup using
-SM,3 - Master mode
-SA, 0 - Disable authentication
-SR, xxxx - Address of the other bt
-SU,96 - baud rate 9600
-SN, name - Name for clarity
-
-The other one
-SM,0 - Master mode
-SA, 0 - Disable authentication
-SU,96 - baud rate 9600
-SN, name - Name for clarity
-ST, 5 - Configuration timeout
-
-For now it seems that a slave can easily recovery from a master restart, but not the opposite. We will make sure that doesn't happen
-*/
-
-
 DataSourceBT :: DataSourceBT(HardwareSerial* ser_, int baud) : DataSource(ser_, baud){
     bt_timer = millis();
     bt_bombarded = false;
@@ -36,32 +17,30 @@ DataSourceBT :: DataSourceBT(HardwareSerial* ser_, int baud) : DataSource(ser_, 
 }
 
 void DataSourceBT :: connect(){
-  //Give the bt time to be brought up (about 5-6 secs.)
-  //When turned on the bt onboard led will blink. After 5-6 secs it will start blinking at a lower freq. We need to wait for that to happen
-  // if(millis() >= bt_timer + 5000 && !bt_bombarded){
-  //   can_bombard = true;
-  // }
-
-  // //For a sec, bombard the other bt of packets. Since we are in sm2 this will make them connect. Note that the two of them cannot accept connections while they're trying to connect
-  // if(can_bombard && millis() >= bt_timer + 5000 && millis() <= bt_timer + 6000){
-  //   DEBUG.println("Bombarding");
-  //   Serial1.print(tosend);
-  //   bt_bombarded = true;
-  // }else{
-  //   can_bombard = false;
-  // }
-
+    Serial3.print("$");
+    Serial3.print("$");
+    Serial3.print("$");
+    delay(100);
+    Serial3.println("C");
 }
 
-void DataSourceBT :: receive(){
-  while(Serial1.available()) {
-    last_received = millis();
-    received = (char) Serial1.read();
-    comrade = true;
-  }
-  if(millis() - last_received > 2000) 
-  comrade = false;
-}
+// void DataSourceBT :: reconnect(){
+//     if(!comrade){
+//     if(!b){
+//       Serial3.print("$");
+//       Serial3.print("$");
+//       Serial3.print("$");
+//     }else{
+//       Serial3.println("C");
+//     }
+
+//     b = !b;
+//   }else{
+//     Serial3.println("---");
+//   }
+//   if(millis() - last_received > 2000) 
+//   comrade = false;
+// }
 
 void DataSourceBT::send(){
   if(millis() - t >= 250 && can_send ){
@@ -80,7 +59,7 @@ void DataSourceBT :: test(){
     if (DEBUG.available()) {
     DEBUG.println((char)DEBUG.read());
     }
-    if (Serial1.available()) {
-    Serial1.write((char)Serial1.read());
+    if (Serial3.available()) {
+    Serial3.write((char)Serial3.read());
   }
 }

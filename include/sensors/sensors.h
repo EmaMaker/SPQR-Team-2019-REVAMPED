@@ -22,7 +22,7 @@
 #include "sensors/data_source_bno055.h"
 #include "sensors/data_source_camera_conicmirror.h"
 #include "sensors/data_source_camera_vshapedmirror.h"
-
+#include "vars.h"
 
 void initSensors();
 void updateSensors();
@@ -39,6 +39,5 @@ s_extr DataSourceBT* bt;
 s_extr DataSourceBallPresence* ballPresence;
 
 s_extr int role;
-s_extr int robot_indentifier;
 
 s_extr Roller* roller;

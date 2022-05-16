@@ -7,14 +7,14 @@
 
 #include "vars.h" 
 
-#define S1O A7
-#define S1I A6
-#define S2O A2
-#define S2I A3
-#define S3I A9
-#define S3O A8
-#define S4I A0
-#define S4O A1
+#define S1I A14
+#define S1O A15
+#define S2I A16
+#define S2O A17
+#define S3I A20
+#define S3O A0
+#define S4I A1
+#define S4O A2
 
 #define LINE_THRESH_CAM 350
 #define EXIT_TIME 300
