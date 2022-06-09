@@ -60,7 +60,7 @@ void PositionSysCamera::update(){
         do{
             valid_data = getDataAtIndex_backwardsFromCurrent(i);
             i++;
-        }while(!valid_data.ySeen && !valid_data.bSeen);
+        }while(!valid_data.ySeen && !valid_data.bSeen && i < dim);
 
         if(valid_data.ySeen || valid_data.bSeen){
             posx = valid_data.posx;
