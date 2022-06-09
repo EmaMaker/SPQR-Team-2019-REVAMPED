@@ -7,7 +7,7 @@
 
 //Camera center: those setpoints correspond to what we consider the center of the field
 #define CAMERA_CENTER_X 0
-#define CAMERA_CENTER_Y 0
+#define CAMERA_CENTER_Y -20
 
 //Camera goal: those setpoints correspond to the position of the center of the goal on the field
 #define CAMERA_GOAL_X 0
@@ -26,11 +26,11 @@
 #define VICINITY_DIST_TRESH 2
 #define ROUGH_VICINITY_DIST_TRESH 10
 
-#define Kpx 1
-#define Kix 0
+#define Kpx 2.5
+#define Kix 0.1
 #define Kdx 0
-#define Kpy 1
-#define Kiy 0
+#define Kpy 3.5
+#define Kiy 0.1
 #define Kdy 0
 
 class PositionSysCamera : public PositionSystem{

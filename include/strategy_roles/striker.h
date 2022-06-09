@@ -6,8 +6,8 @@
 
 #define STRIKER_ATTACK_DISTANCE 110
 #define STRIKER_TILT_STOP_DISTANCE 140
-#define STRIKER_PLUSANG 62
-#define STRIKER_PLUSANG_VISIONCONE 7
+#define STRIKER_PLUSANG 70
+#define STRIKER_PLUSANG_VISIONCONE 0
 
 class Striker : public Game{
 
@@ -24,6 +24,9 @@ class Striker : public Game{
 
         int atk_speed, atk_direction;
         float atk_tilt, ball_tilt;
+
+        int ball_angle_filter;
+        ComplementaryFilter* ball_filter;
 
         bool gotta_tilt;
 };
