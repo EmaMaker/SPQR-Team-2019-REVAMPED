@@ -91,7 +91,6 @@ void TestMenu::testMenu()
             DEBUG.println(role);
             DEBUG.print("Left switch (goalOrientation): ");
             DEBUG.println(camera->goalOrientation);
-            DEBUG.print("Robot Identifier: ");
             delay(50);
             break;
         case 'p':

@@ -18,7 +18,7 @@ bool keeper_condition = false;
 
 void setup() {
   tone(BUZZER, 220, 250);
-  delay(1500);
+  delay(750);
   DEBUG.begin(115200);
     
   for(int i = 0; i < 360; i++){
@@ -37,7 +37,7 @@ void setup() {
   
   tone(BUZZER, 320, 250);
   initGames();
-  delay(250);
+  delay(450);
 
   //Startup sound
   tone(BUZZER, 350.00, 250);
@@ -48,9 +48,11 @@ void setup() {
 void loop() {
   updateSensors();
   drive->resetDrive();
-
   testmenu->testMenu();
+
+  striker->play(1);
   
   drive->drivePrepared();
   updateStatusVector();
+
 }
