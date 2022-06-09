@@ -19,44 +19,28 @@
     S16           27  PD7
     loop cycle duration: 3.2 millis
 **/
+#define S10 ((PINB & 1))
+#define S9 ((PINB & 2) >> 1)
+#define S8 ((PINB & 4) >> 2)
+#define S7 ((PINB & 8) >> 3)
+#define S6 ((PINB & 16) >> 4)
+#define S5 ((PINB & 32) >> 5)
 
-#define S5 ((PINE & 64 ) >> 6)
+#define S4 ((PINC & 1))
+#define S3 ((PINC & 2) >> 1)
+#define S2 ((PINC & 4) >> 2)
+#define S1 ((PINC & 8) >> 3)
 
-#define S11 ((PINC & 128 ) >> 7)
-#define S12 ((PINC & 64 ) >> 6)
-
-#define S13 ((PINB & 64 ) >> 6)
-#define S14 ((PINB & 32 ) >> 5)
-#define S15 ((PINB & 16) >> 4)
-
-#define S1 ((PIND & 64 ) >> 6)
-#define S2 ((PIND & 16 ) >> 4)
-#define S3 ((PIND & 2 ) >> 1)
-#define S4 (PIND & 1 )
-#define S16 ((PIND & 128) >> 7)
-
-#define S6 ((PINF & 2 ) >> 1)
-#define S7 ((PINF & 16 ) >> 4)
-#define S8 ((PINF & 32 ) >> 5)
-#define S9 ((PINF & 64 ) >> 6)
-#define S10 ((PINF & 128 ) >> 7)
+#define S16 ((PIND & 4) >> 2)
+#define S15 ((PIND & 8) >> 3)
+#define S14 ((PIND & 16) >> 4)
+#define S13 ((PIND & 32) >> 5)
+#define S12 ((PIND & 64) >> 6)
+#define S11 ((PIND & 128) >> 7)
 
 #define NCYCLES 250
 #define BROKEN  230
 #define TOO_LOW 45
-
-#define LED1ON (PORTD = PORTD | 0b00100000)
-#define LED1OFF (PORTD = PORTD & 0b11011111)
-
-#define LED2ON (PORTF = PORTF | 0b00000001)
-#define LED2OFF (PORTF = PORTF & 0b11111110)
-
-#define LED3ON (PORTB = PORTB | 0b10000000)
-#define LED3OFF (PORTB = PORTB & 0b01111111)
-
-#define LED4ON (PORTB = PORTB | 0b00000001)
-#define LED4OFF (PORTB = PORTB & 0b11111110)
-
 
 int counter[16];
 int distance;
@@ -82,7 +66,7 @@ unsigned long t = 0;
 void setup() {
   delay(1000);
 
-  Serial1.begin(57600);
+  Serial.begin(57600);
 
   
   /*For now replace pinMode with writes to the direction register. 
@@ -90,13 +74,7 @@ void setup() {
     but this needs further investigation*/  
 
   //Set the LEDs as outputs, keep the rest as input by default
-
-  //LED3(PB7) and LED4 (PB0)
-  DDRB |= 0b10000001;
-  //LED2 (PF0)
-  DDRF |= 0b00000001;
-  //LED1 (PD5)
-  DDRD |= 0b00100000;
+  pinMode(A4, OUTPUT);
   
   /*pinMode(26, INPUT);   //S1
   pinMode(25, INPUT);   //S2
@@ -125,7 +103,6 @@ void loop() {
   readBallInterpolation();
   //printCounter();
   sendDataInterpolation();
-  readFromTeensy();
   //test();
   //delay(100);
 }
@@ -172,6 +149,7 @@ void readBallInterpolation() {
   //dist = hypot(x, y);
   
   nmax = 0;
+  
   //saves max value and sensor
   for (int i = 0; i < 16; i++) {
     if (counter[i] > nmax) {
@@ -184,20 +162,20 @@ void readBallInterpolation() {
   
   //turn led on
   if (distance == 0) {
-    LED1OFF;
-  } else {
-    LED1ON;
+    digitalWrite(A4, LOW);
+  } else {    
+    digitalWrite(A4, HIGH);
   }
 }
 
 void sendDataInterpolation() {
   if(sending){
     sendAngle = ((byte) (angle / 2)) & 0b11111110;
-    Serial1.write(sendAngle);
+    Serial.write(sendAngle);
   }else{
-    sendDistance = map(distance, 0, NCYCLES, 254, 0);
+    sendDistance = NCYCLES - distance;
     sendDistance = sendDistance |= 0b00000001;
-    Serial1.write(sendDistance);
+    Serial.write(sendDistance);
   }
   sending = !sending;
 }
@@ -205,41 +183,41 @@ void sendDataInterpolation() {
 void test() {
   readBallInterpolation();
   
-  Serial1.println("===========");
-  Serial1.print(S1);
-  Serial1.print(" | ");
-  Serial1.print(S2);
-  Serial1.print(" | ");
-  Serial1.print(S3);
-  Serial1.print(" | ");
-  Serial1.print(S4);
-  Serial1.print(" | ");
-  Serial1.print(S5);
-  Serial1.print(" | ");
-  Serial1.print(S6);
-  Serial1.print(" | ");
-  Serial1.print(S7);
-  Serial1.print(" | ");
-  Serial1.print(S8);
-  Serial1.print(" | ");
-  Serial1.print(S9);
-  Serial1.print(" | ");
-  Serial1.print(S10);
-  Serial1.print(" | ");
-  Serial1.print(S11);
-  Serial1.print(" | ");
-  Serial1.print(S12);
-  Serial1.print(" | ");
-  Serial1.print(S13);
-  Serial1.print(" | ");
-  Serial1.print(S14);
-  Serial1.print(" | ");
-  Serial1.print(S15);
-  Serial1.print(" | ");
-  Serial1.print(S16);
-  Serial1.print(" ---  ");
-  Serial1.println(sensor);
-  Serial1.println("===========");
+  Serial.println("===========");
+  Serial.print(S1);
+  Serial.print(" | ");
+  Serial.print(S2);
+  Serial.print(" | ");
+  Serial.print(S3);
+  Serial.print(" | ");
+  Serial.print(S4);
+  Serial.print(" | ");
+  Serial.print(S5);
+  Serial.print(" | ");
+  Serial.print(S6);
+  Serial.print(" | ");
+  Serial.print(S7);
+  Serial.print(" | ");
+  Serial.print(S8);
+  Serial.print(" | ");
+  Serial.print(S9);
+  Serial.print(" | ");
+  Serial.print(S10);
+  Serial.print(" | ");
+  Serial.print(S11);
+  Serial.print(" | ");
+  Serial.print(S12);
+  Serial.print(" | ");
+  Serial.print(S13);
+  Serial.print(" | ");
+  Serial.print(S14);
+  Serial.print(" | ");
+  Serial.print(S15);
+  Serial.print(" | ");
+  Serial.print(S16);
+  Serial.print(" ---  ");
+  Serial.println(sensor);
+  Serial.println("===========");
   delay(100);
 
 }
@@ -247,26 +225,14 @@ void test() {
 
 void printCounter() {
   for (int i = 0; i < 16; i++) {
-    Serial1.print(counter[i]);
-    Serial1.print(" | ");
+    Serial.print(counter[i]);
+    Serial.print(" | ");
   }
-    Serial1.print("\t\t| Angle: " );
-    Serial1.print(angle);
-    Serial1.print("||| Distance: " );
-    Serial1.print(distance);
+    Serial.print("\t\t| Angle: " );
+    Serial.print(angle);
+    Serial.print("||| Distance: " );
+    Serial.print(distance);
     
-  Serial1.println();
+  Serial.println();
   delay(100);
-}
-
-void readFromTeensy(){
-  while(Serial1.available()){
-    byte b = Serial1.read();
-    if(b & 0b00000001 == 1) LED2ON;
-    else LED2OFF;
-    if((b & 0b00000010) >> 1 == 1) LED3ON;
-    else LED3OFF;
-    if((b & 0b00000100) >> 2 == 1) LED4ON;
-    else LED4OFF;
-  }
 }
