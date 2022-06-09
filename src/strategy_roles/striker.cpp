@@ -22,47 +22,34 @@ void Striker::init()
   atk_speed = 0;
   atk_direction = 0;
   atk_tilt = 0;
+  ball_angle_filter = 0;
 
   gotta_tilt = false;
+  ball_filter = new ComplementaryFilter(1);
 }
 
 void Striker::realPlay()
 {
+  ball_angle_filter = ball_filter->calculate(CURRENT_DATA_READ.ballAngle);
+
   if (CURRENT_DATA_READ.ballSeen)
     this->striker();
   else{
     ps->goCenter();
-    roller->speed(roller->MIN);
   }
 }
 
 float ctilt = 0;
 unsigned long ttilt = 0;
 
-
-/*void Striker::striker(){
-  //seguo palla
-  if(ball->isInFront() && roller->roller_armed) roller->speed(ROLLER_DEFAULT_SPEED);
-  else roller->speed(roller->MIN);
-
-  int ball_angle = CURRENT_DATA_READ.ballAngleFix;
-  if(ball_angle > 180) ball_angle -= 360;
-
-  if(!ball->isInMouth())ttilt=millis();
-
-  // int tmp_ball_tilt = (0.25f*ball_angle+old_ball_Angle*0.75f);
-  // ball_tilt = ball->isInMouth() ? ball_angle : ballTilt();
-
-  // // drive->prepareDrive(0,30,ball->isInMouth() && roller->roller_armed ? tilt() : ballTilt());
-  drive->prepareDrive(0,30, millis() - ttilt > 250 ? tilt():  ball_angle);
-
-  // old_ball_Angle = ball_angle;
-  // old_ball_tilt = (int) ball_tilt;
-}*/
-
 void Striker::striker(){
+  if(CURRENT_DATA_READ.ballDistance >= 125){
+    drive->prepareDrive(ball_angle_filter > 180 ? ball_angle_filter*0.96 : ball_angle_filter*1.04, MAX_VEL_3QUARTERS, 0);
+
+  }else
+{
   //seguo palla
-  int ball_degrees2, dir, ball_deg = CURRENT_DATA_READ.ballAngle, plusang = STRIKER_PLUSANG;
+  int ball_degrees2, dir, ball_deg = ball_angle_filter, plusang = STRIKER_PLUSANG;
   
   if(ball_deg >= 344 || ball_deg <= 16) plusang = STRIKER_PLUSANG_VISIONCONE;            //se ho la palla in un range di +-20 davanti, diminuisco di 20 il plus
   if(ball_deg > 180) ball_degrees2 = ball_deg - 360;            //ragiono in +180 -180  
@@ -73,10 +60,11 @@ void Striker::striker(){
 
   dir = (dir + 360) % 360;
   // drive->prepareDrive(dir, MAX_VEL_HALF, tilt());
-  drive->prepareDrive(dir, MAX_VEL_HALF, 0);
+  drive->prepareDrive(dir, MAX_VEL_3QUARTERS, CURRENT_DATA_READ.ballAngle <= 90 || CURRENT_DATA_READ.ballAngle >= 270 ? CURRENT_DATA_READ.angleAtkFix : 0);
 
-  if(ball->isInFront() && roller->roller_armed) roller->speed(ROLLER_DEFAULT_SPEED);
-  else roller->speed(roller->MIN);
+  // if(ball->isInFront() && roller->roller_armed) roller->speed(ROLLER_DEFAULT_SPEED);
+  // else roller->speed(roller->MIN);
+  }
   
 }
 
