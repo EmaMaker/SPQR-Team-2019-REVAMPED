@@ -7,6 +7,6 @@ class ComplementaryFilter{
         ComplementaryFilter(float k);
         float calculate(float f);
     private:
-        int K;
+        float K;
         float oldVal;
 };
