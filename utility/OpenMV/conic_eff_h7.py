@@ -28,10 +28,10 @@ def val_map(x, in_min, in_max, out_min, out_max):
 
 # Check side
 def isInLeftSide(img, x):
-    return x < img.width() / 2
+    return x < img.height() / 2
 
 def isInRightSide(img, x):
-    return x > img.width() / 2
+    return x >= img.height() / 2
 
 
 # LED Setup ##################################################################
@@ -45,11 +45,11 @@ blue_led.on()
 ##############################################################################
 
 
-thresholds = [  (62, 100, -10, 21, 27, 112),    # thresholds yellow goalz
-                (34, 60, -4, 18, -65, -19)]  # thresholds blue goal (6, 31, -15, 4, -35, 0)
+thresholds = [  (72, 100, -26, 12, 37, 91),    # thresholds yellow goalz
+                (30, 54, -8, 12, -42, -17)]  # thresholds blue goal (6, 31, -15, 4, -35, 0)
 
 
-roi = (50, 0, 270, 200)
+roi = (20, 0, 260, 240)
 
 # Camera Setup ###############################################################
 '''sensor.reset()xxxx
@@ -68,12 +68,12 @@ sensor.reset()
 sensor.set_pixformat(sensor.RGB565)
 sensor.set_framesize(sensor.QVGA)
 sensor.set_windowing(roi)
-sensor.set_contrast(0)
-sensor.set_saturation(2)
+sensor.set_contrast(3)
+sensor.set_saturation(3)
 sensor.set_brightness(3)
-sensor.set_auto_whitebal(False, (-6.02073, -4.99849, -1.083474))
-sensor.set_auto_exposure(False, 6576)
-#sensor.set_auto_gain(False, gain_db=8.78)
+sensor.set_auto_whitebal(False, (-6.02073, -5.88632, -0.931115))
+sensor.set_auto_exposure(False, 4445)
+sensor.set_auto_gain(False, 10.2374 )
 sensor.skip_frames(time = 300)
 
 clock = time.clock()
@@ -121,8 +121,8 @@ while(True):
     y_area, y1_cx, y1_cy, y_code = tt_yellow[ny-1]
 
 
-    y_cx = int(y1_cy - img.height() / 2)
-    y_cy = int(img.width() / 2 - y1_cx)
+    y_cx = int(y1_cx - img.width() / 2)
+    y_cy = int(img.height() / 2 - y1_cy)
 
 
     #Normalize data between 0 and 100
@@ -148,12 +148,29 @@ while(True):
     a blue blob that is in the same side of the ground as the yellow one, if so, discard it and check a new one
     '''
 
-    b_cx = BYTE_UNKNOWN
-    b_cy = BYTE_UNKNOWN
-    #Prepare for send as a list of characters
-    s_bcx = b_cx
-    s_bcy = b_cy
 
+    b_area, b1_cx, b1_cy, b_code = tt_blue[nb-1]
+
+
+    b_cx = int(b1_cx - img.width() / 2)
+    b_cy = int(img.height() / 2 - b1_cy)
+
+    if b_found == True:
+        img.draw_cross(b1_cx, b1_cy)
+
+        b_cx = val_map(b_cx, -img.height() / 2, img.height() / 2, 100, 0)
+        b_cy = val_map(b_cy, -img.width() / 2, img.width() / 2, 0, 100)
+        #Prepare for send as a list of characters
+        s_bcx = chr(b_cx)
+        s_bcy = chr(b_cy)
+    else:
+        b_cx = BYTE_UNKNOWN
+        b_cy = BYTE_UNKNOWN
+        #Prepare for send as a list of characters
+        s_bcx = b_cx
+        s_bcy = b_cy
+
+    '''
     if b_found == True:
         for i in range(nb-1, 0,-1):
             b_area, b1_cx, b1_cy, b_code = tt_blue[i]
@@ -180,33 +197,9 @@ while(True):
         #Prepare for send as a list of characters
         s_bcx = b_cx
         s_bcy = b_cy
-        '''index = 1
-        if b_found == True:
-            while nb-index >= 0:
-                b_area, b1_cx, b1_cy, b_code = tt_blue[nb-index]
+    '''
 
-                index += 1
-                # If the two blobs are on opposide side of the field, everything is good
-                if (not y_found) or ((isInRightSide(img, b1_cx) and isInLeftSide(img, y1_cx)) or (isInRightSide(img, y1_cx) and isInLeftSide(img, b1_cx))):
-
-                    img.draw_cross(b1_cx, b1_cy)
-
-                    b_cx = int(b1_cy - img.height() / 2)
-                    b_cy = int(img.width() / 2 - b1_cx)
-
-                    print("before :" + str(b_cx) + " " + str(b_cy))
-                    b_cx = val_map(b_cx, -img.height() / 2, img.height() / 2, 100, 0)
-                    b_cy = val_map(b_cy, -img.width() / 2, img.width() / 2, 0, 100)
-
-                    print("after :" + str(b_cx) + " " + str(b_cy))
-
-                    #Prepare for send as a list of characters
-                    s_bcx = chr(b_cx)
-                    s_bcy = chr(b_cy)
-
-                    break'''
-
-    print(str(s_ycx) + " | " + str(s_ycy) + "  ---  " + str(s_bcx) + " | " + str(s_bcy))
+    #print(str(y_cx) + " | " + str(y_cy) + "  ---  " + str(b_cx) + " | " + str(b_cy))
 
     uart.write(START_BYTE)
     uart.write(s_bcx)

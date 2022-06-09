@@ -51,7 +51,7 @@ void PositionSysCamera::update(){
     }
 
     //IMPORTANT STEP: or the direction of the plane will be flipped
-    posx *= -1;
+    // posx *= -1;
     posy *= -1;
 
     if(CURRENT_DATA_WRITE.bSeen == false && CURRENT_DATA_WRITE.ySeen == false ) {
