@@ -122,10 +122,10 @@ void DataSourceCameraConic ::computeCoordsAngles() {
   //The formula used below assumes the angle being positive in counterclockwise and negative in clockwise, so the angle must be multiplied by -1
   //A little explanation of the formula used here can be found on wikipedia: https://en.wikipedia.org/wiki/Rotation_of_axes
   float angleFix = -tmp*3.14/180;
-  true_xb_fixed = (true_xb*(cos(angleFix))) - (true_yb*(sin(angleFix)));
-  true_yb_fixed = (true_xb*(sin(angleFix))) + (true_yb*(cos(angleFix)));
-  true_xy_fixed = (true_xy*(cos(angleFix))) - (true_yy*(sin(angleFix)));
-  true_yy_fixed = (true_xy*(sin(angleFix))) + (true_yy*(cos(angleFix)));
+  true_xb_fixed = (true_xb*(cos(angleFix))) + (true_yb*(sin(angleFix)));
+  true_yb_fixed = (-true_xb*(sin(angleFix))) + (true_yb*(cos(angleFix)));
+  true_xy_fixed = (true_xy*(cos(angleFix))) + (true_yy*(sin(angleFix)));
+  true_yy_fixed = (-true_xy*(sin(angleFix))) + (true_yy*(cos(angleFix)));
 
   #ifdef CAMERA_CONIC_FILTER_POINTS
   true_xb_fixed = filter_xb_fix->calculate(true_xb_fixed);
@@ -134,8 +134,8 @@ void DataSourceCameraConic ::computeCoordsAngles() {
   true_yy_fixed = filter_yy_fix->calculate(true_yy_fixed);
   #endif
 
-  yAngleFix = 90 - (atan2(true_yy_fixed, true_xy_fixed) * 180 / 3.14);
-  bAngleFix = 90 - (atan2(true_yb_fixed, true_xb_fixed) * 180 / 3.14);
+  yAngleFix = -90 + (atan2(true_yy_fixed, true_xy_fixed) * 180 / 3.14);
+  bAngleFix = -90 + (atan2(true_yb_fixed, true_xb_fixed) * 180 / 3.14);
 
   //Important: update status vector
   CURRENT_INPUT_WRITE.cameraByte = value;
