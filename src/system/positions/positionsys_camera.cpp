@@ -5,6 +5,13 @@
 #include "math.h"
 
 
+int diff(int a, int b){
+	int diffB = abs(min(a, b) - max(a, b));
+	int diffB1 = 360-diffB;
+	int diff = min(diffB, diffB1);
+  return diff;
+}
+
 PositionSysCamera::PositionSysCamera() {
     MAX_DIST = sqrt(MAX_X*MAX_X + MAX_Y*MAX_Y);
 
@@ -172,11 +179,15 @@ void PositionSysCamera::CameraPID(){
         CURRENT_DATA_WRITE.addvx = vx;
         CURRENT_DATA_WRITE.addvy = vy;
         #else
-        drive->prepareDrive(dir, speed, 0);
+        int tmp = (CURRENT_DATA_READ.tilt+360)%360;
+        dir = dir-tmp;
+        if(dir < 0) dir+=360;
+        drive->prepareDrive(dir , speed, CURRENT_DATA_WRITE.tilt);
         #endif
 
     }
 }
+
 
 void PositionSysCamera::test(){
 }
