@@ -10,19 +10,17 @@
 
 //BEST NUMBERS YET
 //USE MOVING AVERAGE AND ANGLE WRAP
-#define KP 2.2
-#define KI 0.01
-#define KD 0.0075
-
-#define KSPD 0.3
+#define KP 4.2
+#define KI 0.1
+#define KD 0.3
 
 #define UNLOCK_THRESH 800
 
 //Max possible vel 310
 
 // #define MAX_POSSIBLE_VEL 310
-#define MAX_POSSIBLE_VEL 280
-#define MAX_VEL 280
+#define MAX_POSSIBLE_VEL 310
+#define MAX_VEL MAX_POSSIBLE_VEL
 #define MAX_VEL_EIGTH ((int)MAX_VEL*0.8)
 #define MAX_VEL_HALF ((int)MAX_VEL*0.5)
 #define MAX_VEL_3QUARTERS ((int)MAX_VEL*0.75)
