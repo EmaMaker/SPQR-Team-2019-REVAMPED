@@ -46,10 +46,10 @@ blue_led.on()
 
 
 thresholds = [  (72, 100, -26, 12, 37, 91),    # thresholds yellow goalz
-                (30, 54, -8, 12, -42, -17)]  # thresholds blue goal (6, 31, -15, 4, -35, 0)
+                (45, 70, -9, 29, -80, -42)]  # thresholds blue goal (6, 31, -15, 4, -35, 0)
 
 
-roi = (20, 0, 260, 240)
+roi = (40, 0, 260, 240)
 
 # Camera Setup ###############################################################
 '''sensor.reset()xxxx
@@ -71,9 +71,9 @@ sensor.set_windowing(roi)
 sensor.set_contrast(3)
 sensor.set_saturation(3)
 sensor.set_brightness(3)
-sensor.set_auto_whitebal(False, (-6.02073, -5.88632, -0.931115))
-sensor.set_auto_exposure(False, 4445)
-sensor.set_auto_gain(False, 10.2374 )
+sensor.set_auto_whitebal(False, (-6.02073, -5.494869, -0.8559153))
+sensor.set_auto_exposure(False, 5845)
+#sensor.set_auto_gain(True)
 sensor.skip_frames(time = 300)
 
 clock = time.clock()
