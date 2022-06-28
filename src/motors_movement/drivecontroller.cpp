@@ -50,6 +50,10 @@ void DriveController::prepareDrive(int dir, int speed, int tilt){
     pDir = dir;
     pSpeed = speed;
     pTilt = tilt;
+
+    CURRENT_DATA_WRITE.dir = dir;
+    CURRENT_DATA_WRITE.speed = speed;
+    CURRENT_DATA_WRITE.tilt = tilt;
 }
 
 void DriveController::drivePrepared(){
@@ -145,9 +149,6 @@ void DriveController::drive(int dir, int speed, int tilt){
         oldSpeed = speed;
     }
 
-    CURRENT_DATA_WRITE.dir = dir;
-    CURRENT_DATA_WRITE.speed = speed;
-    CURRENT_DATA_WRITE.tilt = tilt;
     CURRENT_DATA_WRITE.axisBlock[0] = vxp;
     CURRENT_DATA_WRITE.axisBlock[1] = vxn;
     CURRENT_DATA_WRITE.axisBlock[2] = vyp;
