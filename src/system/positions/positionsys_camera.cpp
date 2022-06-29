@@ -49,34 +49,37 @@ void PositionSysCamera::update(){
     if(CURRENT_DATA_WRITE.bSeen == true && CURRENT_DATA_WRITE.ySeen == true){
         posx = (CURRENT_DATA_WRITE.cam_xy_fixed + CURRENT_DATA_WRITE.cam_xb_fixed) / 2;
         posy = CURRENT_DATA_WRITE.cam_yb_fixed + CURRENT_DATA_WRITE.cam_yy_fixed;
-    }else if (CURRENT_DATA_WRITE.bSeen == true && CURRENT_DATA_WRITE.ySeen == false){
-        posx = CURRENT_DATA_WRITE.cam_xb_fixed;
-        posy = CURRENT_DATA_WRITE.cam_yb_fixed + calcOtherGoalY(CURRENT_DATA_WRITE.cam_yb_fixed);
-    }else if (CURRENT_DATA_WRITE.bSeen == false && CURRENT_DATA_WRITE.ySeen == true){
-        posx = CURRENT_DATA_WRITE.cam_xy_fixed;
-        posy = CURRENT_DATA_WRITE.cam_yy_fixed + calcOtherGoalY(CURRENT_DATA_WRITE.cam_yy_fixed);
-    }
-
     //IMPORTANT STEP: or the direction of the plane will be flipped
     // posx *= -1;
     posy *= -1;
-
-    if(CURRENT_DATA_WRITE.bSeen == false && CURRENT_DATA_WRITE.ySeen == false ) {
+    }else if (CURRENT_DATA_WRITE.bSeen == true && CURRENT_DATA_WRITE.ySeen == false){
+        posx = CURRENT_DATA_WRITE.cam_xb_fixed;
+        posy = CURRENT_DATA_WRITE.cam_yb_fixed + calcOtherGoalY(CURRENT_DATA_WRITE.cam_yb_fixed);
+    //IMPORTANT STEP: or the direction of the plane will be flipped
+    // posx *= -1;
+    posy *= -1;
+    }else if (CURRENT_DATA_WRITE.bSeen == false && CURRENT_DATA_WRITE.ySeen == true){
+        posx = CURRENT_DATA_WRITE.cam_xy_fixed;
+        posy = CURRENT_DATA_WRITE.cam_yy_fixed + calcOtherGoalY(CURRENT_DATA_WRITE.cam_yy_fixed);
+    //IMPORTANT STEP: or the direction of the plane will be flipped
+    // posx *= -1;
+    posy *= -1;
+    }else{
         // Go back in time until we found a valid status, when we saw at least one goal
-        int i = 1;
-        do{
+
+        for(int i = 1; i < dim; i++){
             valid_data = getDataAtIndex_backwardsFromCurrent(i);
-            i++;
-        }while(!valid_data.ySeen && !valid_data.bSeen && i < dim);
+            if(valid_data.ySeen || valid_data.bSeen){
+                posx = valid_data.posx;
+                posy = valid_data.posy;
 
-        if(valid_data.ySeen || valid_data.bSeen){
-            posx = valid_data.posx;
-            posy = valid_data.posy;
-
-            // Trick the status vector into thinking this was a valid status
-            CURRENT_DATA_WRITE.ySeen = valid_data.ySeen;
-            CURRENT_DATA_WRITE.bSeen = valid_data.bSeen;
+                // Trick the status vector into thinking this was a valid status
+                CURRENT_DATA_WRITE.ySeen = valid_data.ySeen;
+                CURRENT_DATA_WRITE.bSeen = valid_data.bSeen;
+                break;
+            }
         }
+
     }
 
     CURRENT_DATA_WRITE.posx = posx;
@@ -153,8 +156,7 @@ void PositionSysCamera::CameraPID(){
         Setpointx += axisx;
         Setpointy += axisy;
 
-        X->Compute();
-        Y->Compute();
+        if(X->Compute() && Y->Compute()){
         
         //Compute an X and Y to give to the PID later
         //There's surely a better way to do this
@@ -162,7 +164,7 @@ void PositionSysCamera::CameraPID(){
         dir = (dir+360) % 360;
 
         float distance = hypot(Outputx, Outputy);
-        float speed = distance > 2 ? 20 + map(distance, 0, MAX_DIST_EXPERIMENTAL, 0, 200) : 0;
+        float speed = distance > 2 ? 35 + map(distance, 0, MAX_DIST_EXPERIMENTAL, 0, MAX_VEL) : 0;
 
         // DEBUG.print("x: ");
         // DEBUG.print(Outputx);
@@ -184,6 +186,8 @@ void PositionSysCamera::CameraPID(){
         if(dir < 0) dir+=360;
         drive->prepareDrive(dir , speed, CURRENT_DATA_WRITE.tilt);
         #endif
+            
+        }
 
     }
 }
