@@ -44,7 +44,8 @@ typedef struct data{
         USfr, USsx, USdx, USrr, 
         lineOutDir, matePos, role, cam_xb_fixed = 0,
         cam_xy_fixed = 0, cam_yb_fixed = 0, cam_yy_fixed = 0,
-        posx, posy, addvx, addvy;
+        posx, posy;
+        float addvx, addvy;
     Game* game;
     LineSystem* lineSystem;
     PositionSystem* posSystem;
