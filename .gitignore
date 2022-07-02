@@ -1,2 +1,5 @@
 .pio
+.vscode/*
 .vscode/**/*
+.clang-format
+utility/OpenMV/conic_eff_h7.py.autosave
