@@ -54,7 +54,7 @@ void DataSourceCameraConic ::readSensor() {
       count = 0;
     } else if (value == endp) {
       data_received = false;
-      if ((count = 4) && (start == true)) {
+      if ((count == 4) && (start == true)) {
         data_received = true;
 
         true_xb = xb;
