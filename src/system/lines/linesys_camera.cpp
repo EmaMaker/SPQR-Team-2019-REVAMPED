@@ -115,8 +115,11 @@ void LineSysCamera::outOfBounds()
 void LineSysCamera::test()
 {
     update();
-    DEBUG.print("Byte Read: ");
-    DEBUG.println(CURRENT_INPUT_READ.lineByte, BIN);
+    DEBUG.print("Byte Read: (bin)");
+    DEBUG.print(CURRENT_INPUT_READ.lineByte, BIN);
+    DEBUG.print("  (dec) ");
+    DEBUG.println(CURRENT_INPUT_READ.lineByte, DEC);
+
     DEBUG.print("In: ");
     for (DataSource *d : in)
     {
