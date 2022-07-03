@@ -5,7 +5,7 @@
 #define MOUTH_MIN_ANGLE 345
 #define MOUTH_MAX_ANGLE 15
 #define MOUTH_DISTANCE 100
-#define MOUTH_MAX_DISTANCE 140
+#define MOUTH_MAX_DISTANCE 120
 
 class DataSourceBall : public DataSource{
 
