@@ -50,7 +50,8 @@ void loop() {
   drive->resetDrive();
   testmenu->testMenu();
 
-  striker->play(1);
+  keeper->play(!role);
+  striker->play(role || ((Keeper*)keeper)->shouldStrike);
   
   drive->drivePrepared();
   updateStatusVector();

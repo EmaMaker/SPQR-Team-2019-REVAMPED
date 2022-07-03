@@ -76,7 +76,7 @@ void TestMenu::testMenu()
             delay(100);
             break;
         case '7':
-            DEBUG.println("LineSensors Test");
+            DEBUG.println("<LineSensors Test");
             CURRENT_DATA_READ.game->ls->test();
             delay(200);
             break;
