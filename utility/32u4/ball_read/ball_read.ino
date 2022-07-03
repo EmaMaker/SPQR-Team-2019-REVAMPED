@@ -38,30 +38,26 @@
 #define S12 ((PIND & 64) >> 6)
 #define S11 ((PIND & 128) >> 7)
 
-#define NCYCLES 250
+#define NCYCLES 255
 #define BROKEN  230
 #define TOO_LOW 45
 
-int counter[16];
-int distance;
-int nmax = 0;
+byte counter[16];
+byte distance;
+byte nmax = 0;
 int sensor = 0;
 
 int oldIndex = 0;
 int oldDistance = 0;
 
-byte ballInfo = 0;
-
 float xs[16];
 float ys[16];
 
 float angle = 0;
-int dist = 0;
-boolean sending = false;
-byte sendAngle = 0, sendDistance = 0;
-byte sendByte = 0;
+byte dist = 0;
 
 unsigned long t = 0;
+byte buf[3];
 
 void setup() {
   delay(1000);
@@ -143,7 +139,7 @@ void readBallInterpolation() {
   }
 
   angle = atan2(y, x) * 180 / PI;
-  angle = ((int)(angle + 360)) % 360;
+  angle = ( ((int)(angle) + 360)) % 360;
 
   //distance is 0 when not seeing ball
   //dist = hypot(x, y);
@@ -158,10 +154,10 @@ void readBallInterpolation() {
     }
   }
 
-  distance = nmax;
+  distance = NCYCLES - nmax;
   
   //turn led on
-  if (distance == 0) {
+  if (distance == NCYCLES) {
     digitalWrite(A4, LOW);
   } else {    
     digitalWrite(A4, HIGH);
@@ -169,15 +165,16 @@ void readBallInterpolation() {
 }
 
 void sendDataInterpolation() {
-  if(sending){
-    sendAngle = ((byte) (angle / 2)) & 0b11111110;
-    Serial.write(sendAngle);
-  }else{
-    sendDistance = NCYCLES - distance;
-    sendDistance = sendDistance |= 0b00000001;
-    Serial.write(sendDistance);
-  }
-  sending = !sending;
+  buf[0] = 0b01000000;
+  buf[1] = 0b10000000;
+  buf[2] = 0b11000000;
+
+  buf[0] |= ((int)angle) & 0b000111111;
+  buf[1] |= (((int)angle) & 0b111000000) >> 6;
+  buf[1] |= (distance & 0b11100000) >> 2;
+  buf[2] |= distance & 0b00011111;
+  
+  if(Serial.availableForWrite() >= 3) Serial.write(buf, 3);
 }
 
 void test() {
