@@ -2,6 +2,7 @@
 
 /* #include "sensors/linesys_2019.h" */
 #include "systems/lines/linesys_camera.h"
+#include "systems/lines/linesys_camera_keeper.h"
 #include "systems/systems.h"
 #include "systems/position/positionsys_zone.h"
 #include "systems/position/positionsys_camera.h"
@@ -21,5 +22,5 @@ void initGames(){
     lOut.push_back(new DataSource(S4O, true));
 
     striker = new Striker(new LineSysCamera(lIn, lOut), new PositionSysCamera());
-    keeper = new Keeper(new LineSystemEmpty(), new PositionSystemEmpty());
+    keeper = new Keeper(new LineSysCameraKeeper(lIn, lOut), new PositionSysCamera());
 }
