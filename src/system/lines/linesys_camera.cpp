@@ -31,7 +31,7 @@ LineSysCamera::LineSysCamera(vector<DataSource *> in_, vector<DataSource *> out_
 
 void LineSysCamera ::update()
 {
-  CURRENT_INPUT_WRITE.lineByte = 0;
+    CURRENT_INPUT_WRITE.lineByte = 0;
     inV = 0;
     outV = 0;
     tookLine = false;
@@ -53,7 +53,7 @@ void LineSysCamera ::update()
         i = it - out.begin();
         ds = *it;
         linetriggerO[i] = ds->getValue() > LINE_THRESH_CAM;
-        CURRENT_INPUT_WRITE.lineByte |= linetriggerO[i] << (4+i);
+        CURRENT_INPUT_WRITE.lineByte |= linetriggerO[i] << (4 + i);
     }
 
     for (int i = 0; i < 4; i++)
@@ -99,8 +99,18 @@ void LineSysCamera::outOfBounds()
 
     if (millis() - exitTimer < EXIT_TIME)
     {
-        CURRENT_DATA_WRITE.game->ps->goCenter();
-        tookLine = true;
+        int yangle = CURRENT_DATA_READ.yangle_fix * CURRENT_DATA_READ.ySeen;
+        int bangle = CURRENT_DATA_READ.bangle_fix * CURRENT_DATA_READ.bSeen;
+
+        int diffB = abs(min(yangle, bangle) - max(yangle, bangle));
+        int diffB1 = 360 - diffB;
+        int diff = min(diffB, diffB1);
+
+        DEBUG.println("AngleY " + String(yangle) + " AngleB" + String(bangle) + " Dir " + String(min(yangle, bangle) + diff));
+
+        drive->prepareDrive(min(yangle, bangle) + diff, CURRENT_DATA_READ.ySeen || CURRENT_DATA_READ.bSeen ? MAX_VEL : 0, CURRENT_DATA_WRITE.tilt);
+        // CURRENT_DATA_WRITE.game->ps->goCenter();
+        // tookLine = true;
         tone(BUZZER, 220.00, 250);
     }
     else

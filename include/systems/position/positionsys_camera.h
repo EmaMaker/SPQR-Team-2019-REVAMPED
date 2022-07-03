@@ -7,20 +7,27 @@
 
 //Camera center: those setpoints correspond to what we consider the center of the field
 #define CAMERA_CENTER_X 0
-#define CAMERA_CENTER_Y -20
-
-//Camera goal: those setpoints correspond to the position of the center of the goal on the field
-#define CAMERA_GOAL_X 0
-#define  CAMERA_GOAL_Y -12
-
-#define CAMERA_GOAL_MIN_X -8
+#define CAMERA_CENTER_Y 0
+//left and right limits of a goal
 #define CAMERA_GOAL_MAX_X 8
+#define CAMERA_GOAL_MIN_X (-8)
 
-#define CAMERA_CENTER_Y_ABS_SUM 60
-//Actually it's ± MAX_VAL
-#define MAX_X 50
-#define MAX_Y (CAMERA_CENTER_Y_ABS_SUM/2)
-#define MAX_DIST_EXPERIMENTAL 70
+//dimensions of the field, for how we scale it
+#define DIM_X 50
+#define DIM_X_HALF 25
+#define DIM_Y 80
+#define DIM_Y_HALF 40
+
+//where is the center of a goal blob as seen by openmv on the field. For atk goal it's positive, for def goal it's negative
+#define CAMERA_GOAL_X 0
+#define CAMERA_GOAL_Y DIM_Y_HALF
+#define CAMERA_GOAL_ATK_Y CAMERA_GOAL_Y
+#define CAMERA_GOAL_DEF_Y (-CAMERA_GOAL_Y)
+
+//hipotenuse of dimensions of field
+#define MAX_DIST_EXPERIMENTAL 94 
+
+
 #define DIST_MULT 8
 
 #define VICINITY_DIST_TRESH 2
@@ -45,13 +52,12 @@ class PositionSysCamera : public PositionSystem{
         void test() override;
         void setCameraPID();
         void CameraPID();
-        int calcOtherGoalY(int goalY);
         bool isInTheVicinityOf(int, int);
         bool isInRoughVicinityOf(int, int);
         bool isAtDistanceFrom(int, int, int);
 
         double Inputx, Outputx, Setpointx, Inputy, Outputy, Setpointy;
-        int MAX_DIST, vx, vy, axisx, axisy;
+        int MAX_DIST, vx, vy, axisx, axisy, method;
         bool givenMovement;
         PID* X;
         PID* Y;

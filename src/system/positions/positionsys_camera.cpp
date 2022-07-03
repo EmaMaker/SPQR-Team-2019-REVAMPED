@@ -13,8 +13,6 @@ int diff(int a, int b){
 }
 
 PositionSysCamera::PositionSysCamera() {
-    MAX_DIST = sqrt(MAX_X*MAX_X + MAX_Y*MAX_Y);
-
     Inputx = 0;
     Outputx = 0;
     Setpointx = 0;
@@ -29,11 +27,11 @@ PositionSysCamera::PositionSysCamera() {
     givenMovement = false;
     
     X = new PID(&Inputx, &Outputx, &Setpointx, Kpx, Kix, Kdx, REVERSE);
-    X->SetOutputLimits(-MAX_X, MAX_X);
+    X->SetOutputLimits(-DIM_X_HALF,DIM_X_HALF);
     X->SetMode(AUTOMATIC);
     X->SetSampleTime(2);
     Y = new PID(&Inputy, &Outputy, &Setpointy, Kpy, Kiy, Kdy, REVERSE);
-    Y->SetOutputLimits(-MAX_Y,MAX_Y);
+    Y->SetOutputLimits(-DIM_Y_HALF, DIM_Y_HALF);
     Y->SetMode(AUTOMATIC);
     Y->SetSampleTime(2);
 
@@ -43,30 +41,65 @@ PositionSysCamera::PositionSysCamera() {
 
 void PositionSysCamera::update(){
     int posx = 0, posy = 0;
+    CURRENT_DATA_WRITE.camera_back_in_time = false;
 
     //Calculate robot position based on just-read coordinates for camera. Using CURRENT_DATA_WRITE instead of CURRENT_DATA_READ othwerise we would be late by 1 loop cycle, but the calculations have to stay in sync
     //Coordinates are referred to a cartesian plane with the origin at the center of the field. Angles starting at the north of the robot
-    if(CURRENT_DATA_WRITE.bSeen == true && CURRENT_DATA_WRITE.ySeen == true){
-        posx = (CURRENT_DATA_WRITE.cam_xy_fixed + CURRENT_DATA_WRITE.cam_xb_fixed) / 2;
-        posy = CURRENT_DATA_WRITE.cam_yb_fixed + CURRENT_DATA_WRITE.cam_yy_fixed;
-    //IMPORTANT STEP: or the direction of the plane will be flipped
-    // posx *= -1;
-    posy *= -1;
-    }else if (CURRENT_DATA_WRITE.bSeen == true && CURRENT_DATA_WRITE.ySeen == false){
-        posx = CURRENT_DATA_WRITE.cam_xb_fixed;
-        posy = CURRENT_DATA_WRITE.cam_yb_fixed + calcOtherGoalY(CURRENT_DATA_WRITE.cam_yb_fixed);
-    //IMPORTANT STEP: or the direction of the plane will be flipped
-    // posx *= -1;
-    posy *= -1;
-    }else if (CURRENT_DATA_WRITE.bSeen == false && CURRENT_DATA_WRITE.ySeen == true){
-        posx = CURRENT_DATA_WRITE.cam_xy_fixed;
-        posy = CURRENT_DATA_WRITE.cam_yy_fixed + calcOtherGoalY(CURRENT_DATA_WRITE.cam_yy_fixed);
-    //IMPORTANT STEP: or the direction of the plane will be flipped
-    // posx *= -1;
-    posy *= -1;
-    }else{
-        // Go back in time until we found a valid status, when we saw at least one goal
+    if(CURRENT_DATA_WRITE.atkSeen && CURRENT_DATA_WRITE.defSeen){
+        //project two lines, from the center of the goals to the robot. The point of intersection of these two lines is the position of the robot
+        //this doesn't work when the angles have tangents that approach infinity, so filtering for that case is needed
+        
+        if(CURRENT_DATA_READ.atkGAngle_fix >= 355 || CURRENT_DATA_READ.atkGAngle_fix <= 5 || CURRENT_DATA_READ.defGAngle_fix >= 175 || CURRENT_DATA_READ.defGAngle_fix <= 185){
+            //fallback to a method without tangents
+            //Extend two vector and find the point where they end, then take the average
+            method = 1;
 
+            int posx1 = CAMERA_GOAL_X + cos(CURRENT_DATA_READ.defGAngle_fix)*CURRENT_DATA_READ.defGDist;
+            int posy1 = CAMERA_GOAL_DEF_Y + sin(CURRENT_DATA_READ.defGAngle_fix)*CURRENT_DATA_READ.defGDist;
+            int posx2 = CAMERA_GOAL_X + cos(CURRENT_DATA_READ.atkGAngle_fix)*CURRENT_DATA_READ.atkGDist;
+            int posy2 = CAMERA_GOAL_ATK_Y + sin(CURRENT_DATA_READ.atkGAngle_fix)*CURRENT_DATA_READ.atkGDist;
+
+            posx = (int) ((posx1-posx2)*0.5);
+            posy = (int) ((posy1-posy2)*0.5);
+
+        }else{
+            //resolved manually and checked with wolfram alpha
+            //here is the solution https://www.wolframalpha.com/input?i=systems+of+equations+calculator&assumption=%7B%22F%22%2C+%22SolveSystemOf2EquationsCalculator%22%2C+%22equation1%22%7D+-%3E%22y-j+%3D+tan%28a%29%28x-i%29%22&assumption=%22FSelect%22+-%3E+%7B%7B%22SolveSystemOf2EquationsCalculator%22%7D%7D&assumption=%7B%22F%22%2C+%22SolveSystemOf2EquationsCalculator%22%2C+%22equation2%22%7D+-%3E%22y-v%3Dtan%28b%29%28x-u%29%22
+            //(i,j), (u,v) are the coords of the two goals. Some stuff cancels out since we assume that the goals always have 0 as x coord
+            method = 0;
+
+            float anglea = (90-CURRENT_DATA_READ.atkGAngle_fix+360)%360;
+            float angleb = (270-CURRENT_DATA_READ.defGAngle_fix+360)%360;
+
+            float tana = tan(radians(anglea));
+            float tanb = tan(radians(angleb));
+
+            float tanb_tana_diff = tanb - tana;
+
+            float posx_n = -CAMERA_GOAL_DEF_Y + CAMERA_GOAL_ATK_Y;
+            float posy_n = CAMERA_GOAL_ATK_Y*tanb + CAMERA_GOAL_DEF_Y*tana;
+
+            posx = (int) (posx_n/tanb_tana_diff);
+            posy = (int) (posy_n/tanb_tana_diff);
+        }
+
+
+    }else if (!CURRENT_DATA_WRITE.atkSeen && CURRENT_DATA_WRITE.defSeen){
+        method = 2;
+        
+        //Extend a vector from a known point and reach the position of the robot
+        posx = CAMERA_GOAL_X + cos(CURRENT_DATA_READ.defGAngle_fix)*CURRENT_DATA_READ.defGDist;
+        posy = CAMERA_GOAL_DEF_Y + sin(CURRENT_DATA_READ.defGAngle_fix)*CURRENT_DATA_READ.defGDist;            
+    }else if (CURRENT_DATA_WRITE.atkSeen && !CURRENT_DATA_WRITE.defSeen == true){
+        method = 3;
+            
+        //Extend a vector from a known point and reach the position of the robot
+        posx = CAMERA_GOAL_X + cos(CURRENT_DATA_READ.atkGAngle_fix)*CURRENT_DATA_READ.atkGDist;
+        posy = CAMERA_GOAL_ATK_Y + sin(CURRENT_DATA_READ.atkGAngle_fix)*CURRENT_DATA_READ.atkGDist;
+    }else{
+        method = 4;
+            
+        // Go back in time until we found a valid status, when we saw at least one goal
         for(int i = 1; i < dim; i++){
             valid_data = getDataAtIndex_backwardsFromCurrent(i);
             if(valid_data.ySeen || valid_data.bSeen){
@@ -76,6 +109,8 @@ void PositionSysCamera::update(){
                 // Trick the status vector into thinking this was a valid status
                 CURRENT_DATA_WRITE.ySeen = valid_data.ySeen;
                 CURRENT_DATA_WRITE.bSeen = valid_data.bSeen;
+                CURRENT_DATA_WRITE.camera_back_in_time = true;
+
                 break;
             }
         }
@@ -84,9 +119,9 @@ void PositionSysCamera::update(){
 
     CURRENT_DATA_WRITE.posx = posx;
     CURRENT_DATA_WRITE.posy = posy;
+    
     Inputx = posx;
     Inputy = posy;
-
     //Prepare for receiving information about movement
     //Starting setpoint position as current position
     Setpointx = posx;
@@ -126,11 +161,6 @@ We know the sum of the absolute values is a fixed number.
 By subtracting the absolute value of the goal y we know to the sum of the absolute values, we get the absolute value of the missing goal y
 The sign of the goal y we found is simply the reverse of the one we got
 */
-int PositionSysCamera::calcOtherGoalY(int goalY){
-    int otherGoalY = CAMERA_CENTER_Y_ABS_SUM - abs(goalY);
-    otherGoalY = goalY < 0 ? otherGoalY : -otherGoalY;
-    return otherGoalY;
-}
 
 bool PositionSysCamera::isInTheVicinityOf(int x_, int y_){
     // Distance using pytagorean theorem
@@ -181,7 +211,7 @@ void PositionSysCamera::CameraPID(){
         CURRENT_DATA_WRITE.addvx = vx;
         CURRENT_DATA_WRITE.addvy = vy;
         #else
-        int tmp = (CURRENT_DATA_READ.tilt+360)%360;
+        int tmp = (CURRENT_DATA_WRITE.tilt+360)%360;
         dir = dir-tmp;
         if(dir < 0) dir+=360;
         drive->prepareDrive(dir , speed, CURRENT_DATA_WRITE.tilt);
@@ -192,6 +222,6 @@ void PositionSysCamera::CameraPID(){
     }
 }
 
-
 void PositionSysCamera::test(){
+    DEBUG.println("Using method " + String(method) + " Position: (" + String(CURRENT_DATA_WRITE.posx) + ", " + String(CURRENT_DATA_WRITE.posy) + ")" );
 }
