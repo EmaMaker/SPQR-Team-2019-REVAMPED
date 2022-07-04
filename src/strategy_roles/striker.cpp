@@ -18,9 +18,7 @@ Striker::Striker(LineSystem *ls_, PositionSystem *ps_) : Game(ls_, ps_)
 
 void Striker::init()
 {
-    atk_speed = 0;
-    atk_direction = 0;
-    atk_tilt = 0;
+    ball_filter = new ComplementaryFilter(0.75f);
 }
 
 void Striker::realPlay()
@@ -39,11 +37,11 @@ unsigned long ttilt = 0;
 void Striker::striker()
 {
 
-    if(CURRENT_DATA_READ.lineActive != 0 ) flag = false;
+    if (CURRENT_DATA_READ.lineActive != 0) flag = false;
 
-    int dir = 0, ball_deg = CURRENT_DATA_READ.ballAngle, plusang = STRIKER_PLUSANG + 8 * (CURRENT_DATA_READ.ballDistance <= 90);
+    int dir = 0, ball_deg = ball_filter->calculate(CURRENT_DATA_READ.ballAngle), plusang = STRIKER_PLUSANG + 10 * (CURRENT_DATA_READ.ballDistance <= 90);
 
-    if (CURRENT_DATA_READ.ballDistance >= 125)
+    if (CURRENT_DATA_READ.ballDistance >= 120)
     {
         drive->prepareDrive(ball_deg > 180 ? ball_deg * 0.96 : ball_deg * 1.04, STRIKER_VEL, 0);
     }
@@ -53,6 +51,8 @@ void Striker::striker()
 
         if (ball->isInFront())
         {
+            plusang = STRIKER_PLUSANG_VISIONCONE;
+            // dir = ball_deg >= 0 ? plusang : - plusang;
             dir = 0;
             flag = false;
         }
@@ -60,7 +60,7 @@ void Striker::striker()
         {
             if (!flag)
             {
-                
+
                 if (ball_deg <= 90)
                     dir = ball_deg + plusang;
                 else if (ball_deg >= 270)
@@ -73,11 +73,14 @@ void Striker::striker()
                     else
                         plusang_flag = -plusang;
                 }
-            }else dir = ball_deg + plusang_flag;
+            }
+            else
+                dir = ball_deg + plusang_flag;
         }
 
+        if (CURRENT_DATA_READ.atkSeen) atk_tilt = CURRENT_DATA_READ.angleAtkFix;
         dir = (dir + 360) % 360;
-        drive->prepareDrive(dir, STRIKER_VEL, tilt());
+        drive->prepareDrive(dir, STRIKER_VEL, atk_tilt);
 
         // if(ball->isInFront() && roller->roller_armed) roller->speed(ROLLER_DEFAULT_SPEED);
         // else roller->speed(roller->MIN);
@@ -86,5 +89,6 @@ void Striker::striker()
 
 int Striker::tilt()
 {
-    return CURRENT_DATA_READ.ballAngle <= 90 || CURRENT_DATA_READ.ballAngle >= 270 ? CURRENT_DATA_READ.angleAtkFix : 0;
+    // return CURRENT_DATA_READ.ballAngle <= 110 || CURRENT_DATA_READ.ballAngle >= 270 ? CURRENT_DATA_READ.angleAtkFix : 0;
+    return CURRENT_DATA_READ.angleAtkFix;
 }
