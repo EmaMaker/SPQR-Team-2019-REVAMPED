@@ -17,49 +17,59 @@ DataSourceCameraConic::DataSourceCameraConic(HardwareSerial *ser_, int baud) : D
 
 void DataSourceCameraConic ::readSensor()
 {
-    while (ser->available() > 0)
+    while (ser->available())
     {
         current_char = ser->read();
 
-        //update status vector
+        // update status vector
         CURRENT_INPUT_WRITE.cameraChar = current_char;
 
         // start
         if (current_char == 'B' || current_char == 'Y')
         {
-          start_char = current_char;
-          start = true;
-          end = false;
-          dash = false;
+            start_char = current_char;
+            start = true;
+            end = false;
+            dash = false;
+            s1 = "";
+            s2 = "";
         }
         // end
         else if (current_char == 'b' || current_char == 'y')
         {
-          end_char = current_char;
+            end_char = current_char;
 
-          if(start && dash && ((start_char == 'B' && end_char == 'b') || (start_char == 'Y' && end_char == 'y') ) ){
-            if(start_char == 'B'){
-              bangle = s1.toInt();
-              bdist = s2.toInt();
-            }else{
-              yangle = s1.toInt();
-              ydist = s2.toInt();
+            if (start && dash && ((start_char == 'B' && end_char == 'b') || (start_char == 'Y' && end_char == 'y')))
+            {
+
+                if (start_char == 'B')
+                {
+                    bangle = s1.toInt();
+                    bdist = s2.toInt();
+                }
+                else
+                {
+                    yangle = s1.toInt();
+                    ydist = s2.toInt();
+                }
+                computeCoordsAngles();
             }
-          }
 
-          end = true;
-          start = false;
-          dash = false;
-          count = 0;
-        }// dash
-        else if (current_char == '-')
+            end = true;
+            start = false;
+            dash = false;
+            count = 0;
+        } // dash
+        else if (current_char == '-' && start)
         {
-          dash = true;
+            dash = true;
         } // it's a number
-        else if (isDigit(current_char))
+        else if (isDigit(current_char) && start)
         {
-          if(dash) s2 += current_char;
-          else s1 += current_char;
+            if (dash)
+                s2 += current_char;
+            else
+                s1 += current_char;
         }
     }
 }
@@ -68,20 +78,20 @@ void DataSourceCameraConic ::readSensor()
 void DataSourceCameraConic ::computeCoordsAngles()
 {
 
-    #ifdef CAMERA_CONIC_FILTER_POINTS
-        yangle = filt_yangle->calculate(yangle);
-        ydist = filt_ydist->calculate(ydist);
-        bangle = filt_bangle->calculate(bangle);
-        bdist = filt_bdist->calculate(bdist);
-    #endif
+#ifdef CAMERA_CONIC_FILTER_POINTS
+    yangle = filt_yangle->calculate(yangle);
+    ydist = filt_ydist->calculate(ydist);
+    bangle = filt_bangle->calculate(bangle);
+    bdist = filt_bdist->calculate(bdist);
+#endif
 
     // Fix angles using the IMU
     int tmp = CURRENT_DATA_READ.IMUAngle > 180 ? CURRENT_DATA_READ.IMUAngle - 360 : CURRENT_DATA_READ.IMUAngle;
 
-    yangle_fix = (yangle+tmp+360) % 360;
-    bangle_fix = (bangle+tmp+360) % 360;
+    yangle_fix = (yangle + tmp + 360) % 360;
+    bangle_fix = (bangle + tmp + 360) % 360;
 
-    //TODO: Maybe add a complementary filter on fixed angles ?
+    // TODO: Maybe add a complementary filter on fixed angles ?
 
     // Important: update status vector
     CURRENT_DATA_WRITE.yangle = yangle;
@@ -106,7 +116,7 @@ void DataSourceCameraConic ::computeCoordsAngles()
 
 void DataSourceCameraConic::test()
 {
-  DEBUG.print("BLUE GOAL:: Seen: " + String(CURRENT_DATA_READ.bSeen) + " | Angle: " + CURRENT_DATA_READ.bangle + " | Fixed Angle: " + CURRENT_DATA_READ.bangle_fix + " | Dist: " + CURRENT_DATA_READ.bdist);
-  DEBUG.print("YELLOW GOAL:: Seen: " + String(CURRENT_DATA_READ.ySeen) + " | Angle: " + CURRENT_DATA_READ.yangle + " | Fixed Angle: " + CURRENT_DATA_READ.yangle_fix + " | Dist: " + CURRENT_DATA_READ.ydist);
-  delay(150);
+    DEBUG.println("Received char '" + String(CURRENT_INPUT_READ.cameraChar) + "'");
+    DEBUG.println("BLUE GOAL:: Seen: " + String(CURRENT_DATA_READ.bSeen) + " | Angle: " + CURRENT_DATA_READ.bangle + " | Fixed Angle: " + CURRENT_DATA_READ.bangle_fix + " | Dist: " + CURRENT_DATA_READ.bdist);
+    DEBUG.println("YELLOW GOAL:: Seen: " + String(CURRENT_DATA_READ.ySeen) + " | Angle: " + CURRENT_DATA_READ.yangle + " | Fixed Angle: " + CURRENT_DATA_READ.yangle_fix + " | Dist: " + CURRENT_DATA_READ.ydist);
 }
