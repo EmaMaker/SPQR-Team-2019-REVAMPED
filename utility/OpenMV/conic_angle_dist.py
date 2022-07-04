@@ -109,21 +109,21 @@ while(True):
         #y_cx = val_map(y_cy, -img.width() / 2, img.width() / 2, 0, 99)
 
         #compute angle
-        y_angle = atan2(y_cy, y_cx)
+        y_angle = math.atan2(y_cy, y_cx)
         y_angle = -90 + (y_angle * 180 / 3.14) #convert to degrees and shift
-        y_angle = (y_angle+360)%360 #make sure it's all positive, so we don't have strange things happening when receiving on teensy's side
+        y_angle = (int(y_angle)+360)%360 #make sure it's all positive, so we don't have strange things happening when receiving on teensy's side
 
         #compute dist
-        y_dist = sqrt(y_cx*y_cx + y_cy*y_cy)
+        y_dist = int(math.sqrt(y_cx*y_cx + y_cy*y_cy))
 
-        data = "{}{}{}{}{}".format("Y", str(y_angle), "-", str(y_dist), "y")
+        ydata = "{}{}{}{}{}".format("Y", str(y_angle), "-", str(y_dist), "y")
     # il numero 999 indica che non ho trovato nessun blob
     else:
-        data = "{}{}{}{}{}".format("Y", "999", "-", "0", "y")
+        ydata = "{}{}{}{}{}".format("Y", "999", "-", "0", "y")
 
 
     # trasmetto dati in seriale e test su terminale
-    uart.write(data)
+    uart.write(ydata)
 
 
     b_area, b1_cx, b1_cy, b_code = tt_blue[nb-1]
@@ -137,17 +137,21 @@ while(True):
         #b_cx = val_map(b_cy, -img.width() / 2, img.width() / 2, 0, 99)
 
         #compute angle
-        b_angle = atan2(y_cy, y_cx) #to fix to account for camera and robot rotation
+        b_angle = math.atan2(b_cy, b_cx) #to fix to account for camera and robot rotation
         b_angle = -90 + (b_angle * 180 / 3.14) #convert to degrees and shift
-        b_angle = (b_angle+360)%360 #make sure it's all positive, so we don't have strange things happening when receiving on teensy's side
+        b_angle = (int(b_angle)+360)%360 #make sure it's all positive, so we don't have strange things happening when receiving on teensy's side
         #compute dist
-        b_dist = sqrt(y_cx*y_cx + y_cy*y_cy)
+        b_dist = int(math.sqrt(b_cx*b_cx + b_cy*b_cy))
 
-        data = "{}{}{}{}{}".format("B", str(b_angle), "-", str(b_dist), "b")
+        bdata = "{}{}{}{}{}".format("B", str(b_angle), "-", str(b_dist), "b")
     # il numero 999 indica che non ho trovato nessun blob
     else:
-        data = "{}{}{}{}{}".format("B", "999", "-", "0", "b")
+        bdata = "{}{}{}{}{}".format("B", "999", "-", "0", "b")
+
+    uart.write(bdata)
 
 
     #BLUE FIRST, YELLOW SECOND. ANGLE FIRST, DISTANCE SECOND
-    print(str(s_b_angle) + " | " + str(s_b_dist) + "  ---  " + str(s_y_angle) + " | " + str(s_y_dist))
+    #print(str(b_angle) + " | " + str(b_dist) + "  ---  " + str(y_angle) + " | " + str(y_dist))
+    print(f"Blue {bdata}")
+    print(f"Yellow {ydata}")
