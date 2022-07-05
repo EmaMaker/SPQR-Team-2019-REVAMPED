@@ -78,11 +78,20 @@ void DataSourceCameraConic ::readSensor()
 void DataSourceCameraConic ::computeCoordsAngles()
 {
 
+    CURRENT_DATA_WRITE.bSeen = bangle != 999;
+    CURRENT_DATA_WRITE.ySeen = yangle != 999;
+
 #ifdef CAMERA_CONIC_FILTER_POINTS
-    yangle = filt_yangle->calculate(yangle);
-    ydist = filt_ydist->calculate(ydist);
-    bangle = filt_bangle->calculate(bangle);
-    bdist = filt_bdist->calculate(bdist);
+    if (CURRENT_DATA_WRITE.ySeen)
+    {
+        yangle = filt_yangle->calculate(yangle);
+        ydist = filt_ydist->calculate(ydist);
+    }
+    if (CURRENT_DATA_WRITE.bSeen)
+    {
+        bangle = filt_bangle->calculate(bangle);
+        bdist = filt_bdist->calculate(bdist);
+    }
 #endif
 
     // Fix angles using the IMU
@@ -100,8 +109,6 @@ void DataSourceCameraConic ::computeCoordsAngles()
     CURRENT_DATA_WRITE.bangle_fix = bangle_fix;
     CURRENT_DATA_WRITE.ydist = ydist;
     CURRENT_DATA_WRITE.bdist = bdist;
-    CURRENT_DATA_WRITE.bSeen = bangle != 999;
-    CURRENT_DATA_WRITE.ySeen = yangle != 999;
 
     CURRENT_DATA_WRITE.atkGAngle = goalOrientation ? yangle : bangle;
     CURRENT_DATA_WRITE.atkGAngle_fix = goalOrientation ? yangle_fix : bangle_fix;
