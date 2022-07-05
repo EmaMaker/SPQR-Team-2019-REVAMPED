@@ -45,6 +45,14 @@ void PositionSysCamera::update()
     int posx = 0, posy = 0;
     CURRENT_DATA_WRITE.camera_back_in_time = false;
 
+    double anglea = (double)((90 - CURRENT_DATA_READ.atkGAngle_fix + 360) % 360);
+    double angled = (double)((270 - CURRENT_DATA_READ.defGAngle_fix + 360) % 360);
+
+    double anglea_rad = radians(anglea);
+    double angled_rad = radians(angled);
+
+    // DEBUG.println("Angles from goals " + String(anglea) + ", " + String(angled));
+
     // Calculate robot position based on just-read coordinates for camera. Using CURRENT_DATA_WRITE instead of CURRENT_DATA_READ othwerise we would be late by 1 loop cycle, but the calculations have to stay in sync
     // Coordinates are referred to a cartesian plane with the origin at the center of the field. Angles starting at the north of the robot
     if (CURRENT_DATA_WRITE.atkSeen && CURRENT_DATA_WRITE.defSeen)
@@ -52,16 +60,19 @@ void PositionSysCamera::update()
         // project two lines, from the center of the goals to the robot. The point of intersection of these two lines is the position of the robot
         // this doesn't work when the angles have tangents that approach infinity, so filtering for that case is needed
 
-        if (CURRENT_DATA_READ.atkGAngle_fix == 0 || CURRENT_DATA_READ.atkGAngle_fix == 180 || CURRENT_DATA_READ.defGAngle_fix == 0 || CURRENT_DATA_READ.defGAngle_fix == 180)
+        if (CURRENT_DATA_READ.atkGAngle_fix >= 355 || CURRENT_DATA_READ.atkGAngle_fix <= 5 || (CURRENT_DATA_READ.defGAngle_fix >= 175 && CURRENT_DATA_READ.defGAngle_fix <= 185))
         {
             // fallback to a method without tangents
             // Extend two vector and find the point where they end, then take the average
             method = 1;
 
-            int posx1 = CAMERA_GOAL_X + cos(radians(CURRENT_DATA_READ.defGAngle_fix)) * CURRENT_DATA_READ.defGDist;
-            int posy1 = CAMERA_GOAL_DEF_Y + sin(radians(CURRENT_DATA_READ.defGAngle_fix)) * CURRENT_DATA_READ.defGDist;
-            int posx2 = CAMERA_GOAL_X + cos(radians(CURRENT_DATA_READ.atkGAngle_fix)) * CURRENT_DATA_READ.atkGDist;
-            int posy2 = CAMERA_GOAL_ATK_Y + sin(radians(CURRENT_DATA_READ.atkGAngle_fix)) * CURRENT_DATA_READ.atkGDist;
+            int posx1 = (int)(cos(angled_rad) * CURRENT_DATA_READ.defGDist);
+            int posy1 = (int)(CAMERA_GOAL_DEF_Y + sin(angled_rad) * CURRENT_DATA_READ.defGDist);
+            int posx2 = (int)(cos(anglea_rad) * CURRENT_DATA_READ.atkGDist);
+            int posy2 = (int)(CAMERA_GOAL_ATK_Y - sin(anglea_rad) * CURRENT_DATA_READ.atkGDist);
+
+            // DEBUG.println("POSX1, POSY1 " + String(posx1) + "," + String(posy1));
+            // DEBUG.println("POSX2, POSY2 " + String(posx2) + "," + String(posy2));
 
             posx = (int)((posx1 + posx2) * 0.5);
             posy = (int)((posy1 + posy2) * 0.5);
@@ -73,19 +84,16 @@ void PositionSysCamera::update()
             //(i,j), (u,v) are the coords of the two goals. Some stuff cancels out since we assume that the goals always have 0 as x coord
             method = 0;
 
-            float anglea = (90 - CURRENT_DATA_READ.atkGAngle_fix + 360) % 360;
-            float angleb = (270 - CURRENT_DATA_READ.defGAngle_fix + 360) % 360;
+            double tana = tan(anglea_rad);
+            double tanb = tan(angled_rad);
 
-            float tana = tan(radians(anglea));
-            float tanb = tan(radians(angleb));
+            double tana_tanb_diff = tana - tanb;
 
-            float tanb_tana_diff = tanb - tana;
+            double posx_n = CAMERA_GOAL_DEF_Y - CAMERA_GOAL_ATK_Y;
+            double posy_n = -CAMERA_GOAL_ATK_Y * tanb + CAMERA_GOAL_DEF_Y * tana;
 
-            float posx_n = -CAMERA_GOAL_DEF_Y + CAMERA_GOAL_ATK_Y;
-            float posy_n = CAMERA_GOAL_ATK_Y * tanb + CAMERA_GOAL_DEF_Y * tana;
-
-            posx = (int)(posx_n / tanb_tana_diff);
-            posy = (int)(posy_n / tanb_tana_diff);
+            posx = (int)(posx_n / tana_tanb_diff);
+            posy = (int)(posy_n / tana_tanb_diff);
         }
     }
     else if (!CURRENT_DATA_WRITE.atkSeen && CURRENT_DATA_WRITE.defSeen)
@@ -93,16 +101,16 @@ void PositionSysCamera::update()
         method = 2;
 
         // Extend a vector from a known point and reach the position of the robot
-        posx = CAMERA_GOAL_X + cos(radians(CURRENT_DATA_READ.defGAngle_fix)) * CURRENT_DATA_READ.defGDist;
-        posy = CAMERA_GOAL_DEF_Y + sin(radians(CURRENT_DATA_READ.defGAngle_fix)) * CURRENT_DATA_READ.defGDist;
+        posx = CAMERA_GOAL_X + cos(angled_rad) * CURRENT_DATA_READ.defGDist;
+        posy = CAMERA_GOAL_DEF_Y + sin(angled_rad) * CURRENT_DATA_READ.defGDist;
     }
-    else if (CURRENT_DATA_WRITE.atkSeen && !CURRENT_DATA_WRITE.defSeen == true)
+    else if (CURRENT_DATA_WRITE.atkSeen && !CURRENT_DATA_WRITE.defSeen)
     {
         method = 3;
 
         // Extend a vector from a known point and reach the position of the robot
-        posx = CAMERA_GOAL_X + cos(radians(CURRENT_DATA_READ.atkGAngle_fix)) * CURRENT_DATA_READ.atkGDist;
-        posy = CAMERA_GOAL_ATK_Y + sin(radians(CURRENT_DATA_READ.atkGAngle_fix)) * CURRENT_DATA_READ.atkGDist;
+        posx = CAMERA_GOAL_X + cos(anglea_rad) * CURRENT_DATA_READ.atkGDist;
+        posy = CAMERA_GOAL_ATK_Y + sin(anglea_rad) * CURRENT_DATA_READ.atkGDist;
     }
     else
     {

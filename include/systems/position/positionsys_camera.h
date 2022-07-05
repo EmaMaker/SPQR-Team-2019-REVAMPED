@@ -13,10 +13,10 @@
 #define CAMERA_GOAL_MIN_X (-8)
 
 //dimensions of the field, for how we scale it
-#define DIM_X 50
-#define DIM_X_HALF 25
-#define DIM_Y 80
-#define DIM_Y_HALF 40
+#define DIM_X 220
+#define DIM_X_HALF 110
+#define DIM_Y 240
+#define DIM_Y_HALF 120
 
 //where is the center of a goal blob as seen by openmv on the field. For atk goal it's positive, for def goal it's negative
 #define CAMERA_GOAL_X 0
