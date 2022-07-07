@@ -44,75 +44,40 @@ void PositionSysCamera::update()
 {
     int posx = 0, posy = 0;
     CURRENT_DATA_WRITE.camera_back_in_time = false;
+    bool data_valid = true;
 
-    double anglea = (double)((90 - CURRENT_DATA_READ.atkGAngle_fix + 360) % 360);
-    double angled = (double)((270 - CURRENT_DATA_READ.defGAngle_fix + 360) % 360);
-
-    double anglea_rad = radians(anglea);
-    double angled_rad = radians(angled);
-
-    // DEBUG.println("Angles from goals " + String(anglea) + ", " + String(angled));
-
-    // Calculate robot position based on just-read coordinates for camera. Using CURRENT_DATA_WRITE instead of CURRENT_DATA_READ othwerise we would be late by 1 loop cycle, but the calculations have to stay in sync
-    // Coordinates are referred to a cartesian plane with the origin at the center of the field. Angles starting at the north of the robot
-    if (CURRENT_DATA_WRITE.atkSeen && CURRENT_DATA_WRITE.defSeen)
+    if (CURRENT_DATA_READ.atkSeen || CURRENT_DATA_READ.defSeen)
     {
-        // project two lines, from the center of the goals to the robot. The point of intersection of these two lines is the position of the robot
-        // this doesn't work when the angles have tangents that approach infinity, so filtering for that case is needed
+        method = 0;
+        int distxd = -sin(radians(CURRENT_DATA_READ.defGAngle_fix)) * CURRENT_DATA_READ.defGDist;
+        int distyd = abs(cos(radians(CURRENT_DATA_READ.defGAngle_fix))) * CURRENT_DATA_READ.defGDist;
+        int distxa = -sin(radians(CURRENT_DATA_READ.atkGAngle_fix)) * CURRENT_DATA_READ.atkGDist;
+        int distya = abs(cos(radians(CURRENT_DATA_READ.atkGAngle_fix))) * CURRENT_DATA_READ.atkGDist;
 
-        if (CURRENT_DATA_READ.atkGAngle_fix >= 355 || CURRENT_DATA_READ.atkGAngle_fix <= 5 || (CURRENT_DATA_READ.defGAngle_fix >= 175 && CURRENT_DATA_READ.defGAngle_fix <= 185))
+        // DEBUG.println("POSX1, POSY1 " + String(distxd) + "," + String(distyd));
+        // DEBUG.println("POSX2, POSY2 " + String(distxa) + "," + String(distya));
+
+        int posya = CAMERA_GOAL_ATK_Y - distya;
+        int posyd = CAMERA_GOAL_DEF_Y + distyd;
+
+        if ((distxd * distxa < 0) || (CURRENT_DATA_READ.atkSeen && CURRENT_DATA_READ.defSeen && posya - posyd > 25)) data_valid = false;
+
+        if (data_valid)
         {
-            // fallback to a method without tangents
-            // Extend two vector and find the point where they end, then take the average
-            method = 1;
-
-            int posx1 = (int)(cos(angled_rad) * CURRENT_DATA_READ.defGDist);
-            int posy1 = (int)(CAMERA_GOAL_DEF_Y + sin(angled_rad) * CURRENT_DATA_READ.defGDist);
-            int posx2 = (int)(cos(anglea_rad) * CURRENT_DATA_READ.atkGDist);
-            int posy2 = (int)(CAMERA_GOAL_ATK_Y - sin(anglea_rad) * CURRENT_DATA_READ.atkGDist);
-
-            // DEBUG.println("POSX1, POSY1 " + String(posx1) + "," + String(posy1));
-            // DEBUG.println("POSX2, POSY2 " + String(posx2) + "," + String(posy2));
-
-            posx = (int)((posx1 + posx2) * 0.5);
-            posy = (int)((posy1 + posy2) * 0.5);
-        }
-        else
-        {
-            // resolved manually and checked with wolfram alpha
-            // here is the solution https://www.wolframalpha.com/input?i=systems+of+equations+calculator&assumption=%7B%22F%22%2C+%22SolveSystemOf2EquationsCalculator%22%2C+%22equation1%22%7D+-%3E%22y-j+%3D+tan%28a%29%28x-i%29%22&assumption=%22FSelect%22+-%3E+%7B%7B%22SolveSystemOf2EquationsCalculator%22%7D%7D&assumption=%7B%22F%22%2C+%22SolveSystemOf2EquationsCalculator%22%2C+%22equation2%22%7D+-%3E%22y-v%3Dtan%28b%29%28x-u%29%22
-            //(i,j), (u,v) are the coords of the two goals. Some stuff cancels out since we assume that the goals always have 0 as x coord
-            method = 0;
-
-            double tana = tan(anglea_rad);
-            double tanb = tan(angled_rad);
-
-            double tana_tanb_diff = tana - tanb;
-
-            double posx_n = CAMERA_GOAL_DEF_Y - CAMERA_GOAL_ATK_Y;
-            double posy_n = -CAMERA_GOAL_ATK_Y * tanb + CAMERA_GOAL_DEF_Y * tana;
-
-            posx = (int)(posx_n / tana_tanb_diff);
-            posy = (int)(posy_n / tana_tanb_diff);
+            if ((CURRENT_DATA_READ.atkSeen && !CURRENT_DATA_READ.defSeen) || (CURRENT_DATA_READ.atkSeen && CURRENT_DATA_READ.defSeen && CURRENT_DATA_READ.atkGDist < CURRENT_DATA_READ.defGDist))
+            {
+                posx = distxa;
+                posy = posya;
+            }
+            else
+            {
+                posx = distxd;
+                posy = posyd;
+            }
         }
     }
-    else if (!CURRENT_DATA_WRITE.atkSeen && CURRENT_DATA_WRITE.defSeen)
-    {
-        method = 2;
 
-        // Extend a vector from a known point and reach the position of the robot
-        posx = CAMERA_GOAL_X + cos(angled_rad) * CURRENT_DATA_READ.defGDist;
-        posy = CAMERA_GOAL_DEF_Y + sin(angled_rad) * CURRENT_DATA_READ.defGDist;
-    }
-    else if (CURRENT_DATA_WRITE.atkSeen && !CURRENT_DATA_WRITE.defSeen)
-    {
-        method = 3;
-
-        // Extend a vector from a known point and reach the position of the robot
-        posx = CAMERA_GOAL_X + cos(anglea_rad) * CURRENT_DATA_READ.atkGDist;
-        posy = CAMERA_GOAL_ATK_Y + sin(anglea_rad) * CURRENT_DATA_READ.atkGDist;
-    }
-    else
+    if (!data_valid || (!CURRENT_DATA_READ.atkSeen && !CURRENT_DATA_READ.defSeen))
     {
         method = 4;
 
