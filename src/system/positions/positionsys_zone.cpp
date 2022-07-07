@@ -263,9 +263,9 @@ void PositionSysZone::phyZoneUS(){
 void PositionSysZone::phyZoneCam(){
 
   //IMU-fixed attack angle
-  camA = CURRENT_DATA_READ.angleAtkFix;
+  camA = CURRENT_DATA_READ.atkGAngle_fix;
   //IMU-fixed defence angle
-  camD = CURRENT_DATA_READ.angleDefFix;
+  camD = CURRENT_DATA_READ.defGAngle_fix;
 
   //Negative angle means that the robot is positioned to the right of the goalpost
   //Positive angle means that the robot is positioned to the left of the goalpost

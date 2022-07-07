@@ -83,7 +83,7 @@ void TestMenu::testMenu()
         case '8':
             DEBUG.println("Camera tilt Test");
             drive->resetDrive();
-            drive->prepareDrive(0, 0, CURRENT_DATA_READ.angleAtkFix);
+            drive->prepareDrive(0, 0, CURRENT_DATA_READ.atkGAngle_fix);
             break;
         case '9':
             DEBUG.println("Switches as seen from behind:");
@@ -96,11 +96,8 @@ void TestMenu::testMenu()
         case 'p':
             if(millis() - timer > 150){
                 timer = millis();
-                DEBUG.println("Position on the field (camera)");
-                DEBUG.print("X: ");
-                DEBUG.print(CURRENT_DATA_READ.posx);
-                DEBUG.print(" , Y: ");
-                DEBUG.println(CURRENT_DATA_READ.posy);
+                DEBUG.println("Position on the field");
+                CURRENT_DATA_WRITE.game->ps->test();
             }
             break;
         case 'u':
