@@ -100,6 +100,13 @@ void DataSourceCameraConic ::computeCoordsAngles()
     yangle_fix = (yangle + tmp + 360) % 360;
     bangle_fix = (bangle + tmp + 360) % 360;
 
+#ifdef CAMERA_CONIC_FILTER_POINTS
+    if (CURRENT_DATA_WRITE.ySeen)
+        yangle_fix = filt_yangle_fix->calculate(yangle_fix);
+    if (CURRENT_DATA_WRITE.bSeen)
+        bangle_fix = filt_bangle_fix->calculate(bangle_fix);
+#endif
+
     // TODO: Maybe add a complementary filter on fixed angles ?
 
     // Important: update status vector
