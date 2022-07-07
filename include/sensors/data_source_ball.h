@@ -2,8 +2,8 @@
 #include "behaviour_control/data_source.h"
 #include <Arduino.h>
 
-#define MOUTH_MIN_ANGLE 345
-#define MOUTH_MAX_ANGLE 15
+#define MOUTH_MIN_ANGLE 350
+#define MOUTH_MAX_ANGLE 10
 #define MOUTH_DISTANCE 100
 #define MOUTH_MAX_DISTANCE 140
 
