@@ -99,19 +99,45 @@ void LineSysCamera::outOfBounds()
 
     if (millis() - exitTimer < EXIT_TIME)
     {
+        int dir = 0;
+        int speed = CURRENT_DATA_READ.ySeen || CURRENT_DATA_READ.bSeen ? MAX_VEL : 0;
         int yangle = CURRENT_DATA_READ.yangle_fix * CURRENT_DATA_READ.ySeen;
         int bangle = CURRENT_DATA_READ.bangle_fix * CURRENT_DATA_READ.bSeen;
+        int ydist = CURRENT_DATA_READ.ydist;
+        int bdist = CURRENT_DATA_READ.bdist;
 
-        int diffB = abs(min(yangle, bangle) - max(yangle, bangle));
-        int diffB1 = 360 - diffB;
-        int diff = min(diffB, diffB1);
+        if (!CURRENT_DATA_READ.bSeen && !CURRENT_DATA_READ.ySeen)
+        {
+            dir = 0;
+            speed = 0;
+        }
+        else
+        {
+            if (angleCritic(yangle) || angleCritic(bangle))
+            {
+                if(CURRENT_DATA_READ.bSeen && CURRENT_DATA_READ.ySeen){
+                    dir = ydist > bdist ? yangle : bangle;
+                }else{
+                    if (CURRENT_DATA_READ.bSeen) dir = bangle;
+                    else
+                        dir =  yangle;
+                }
+            }
+            else
+            {
+                int diffB = abs(min(yangle, bangle) - max(yangle, bangle));
+                int diffB1 = 360 - diffB;
+                int diff = min(diffB, diffB1);
+                dir = min(yangle, bangle) + diff * 0.5f;
+            }
+            drive->prepareDrive(dir, speed, CURRENT_DATA_WRITE.tilt);
 
-        DEBUG.println("AngleY " + String(yangle) + " AngleB" + String(bangle) + " Dir " + String(min(yangle, bangle) + diff));
+            // DEBUG.println("AngleY:" + String(yangle) + " AngleB:" + String(bangle) + " DistY: " + String(ydist) + " DistB: " +String(bdist) + " Dir " + String(dir));
 
-        drive->prepareDrive(min(yangle, bangle) + diff, CURRENT_DATA_READ.ySeen || CURRENT_DATA_READ.bSeen ? MAX_VEL : 0, CURRENT_DATA_WRITE.tilt);
-        // CURRENT_DATA_WRITE.game->ps->goCenter();
-        // tookLine = true;
-        tone(BUZZER, 220.00, 250);
+            // CURRENT_DATA_WRITE.game->ps->goCenter();
+            // tookLine = true;
+            tone(BUZZER, 220.00, 250);
+        }
     }
     else
     {
@@ -120,6 +146,11 @@ void LineSysCamera::outOfBounds()
         linesensOldY = 0;
         linesensOldX = 0;
     }
+}
+
+bool LineSysCamera::angleCritic(int angle)
+{
+    return angle >= 355 || angle <= 5 || (angle >= 175 && angle <= 185);
 }
 
 void LineSysCamera::test()
