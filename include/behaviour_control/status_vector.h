@@ -30,30 +30,26 @@
 
 typedef struct input{
     int IMUAngle, USfr, USsx, USdx, USrr, BT;
-    byte ballByte, cameraByte, lineByte, xb, yb, xy, yy;
+    byte ballByte, lineByte, xb, yb, xy, yy;
+    char cameraChar;
     bool SW_DX, SW_SX;
 }input;
 
 typedef struct data{
     int IMUAngle = 0, IMUOffset = 0, ballAngle = 0, ballAngleFix, ballDistance, ballPresenceVal, 
-        yAngle, bAngle, yAngleFix, bAngleFix, 
-        yDist, bDist, 
-        angleAtk, angleAtkFix, angleDef, angleDefFix, distAtk, distDef, yAtk, yAtkFix, xAtk, xAtkFix, yDef, yDefFix, xDef, xDefFix,
-        cam_xb = 0, cam_yb = 0, cam_xy = 0, cam_yy = 0,
         speed, tilt, dir, axisBlock[4],
         USfr, USsx, USdx, USrr, 
-        lineOutDir, matePos, role, cam_xb_fixed = 0,
-        cam_xy_fixed = 0, cam_yb_fixed = 0, cam_yy_fixed = 0,
-        posx, posy;
+        lineOutDir, matePos, role;
+    int yangle, bangle, ydist, bdist, yangle_fix, bangle_fix, atkGAngle, defGAngle, atkGAngle_fix, defGAngle_fix, atkGDist, defGDist;
+    int posx, posy;
         float addvx, addvy;
     Game* game;
     LineSystem* lineSystem;
     PositionSystem* posSystem;
     byte lineSeen, lineActive;
-    bool mate, 
-        ATKgoal, DEFgoal, 
-        atkSeen, defSeen, bSeen = true, ySeen = false,
-        ballSeen, ballPresent;
+    bool mate,
+        atkSeen = false, defSeen = false, bSeen = false, ySeen = false, ballSeen, ballPresent;
+        bool camera_back_in_time = false; //whether or not we copied camera position from and older status
 }data;
 
 sv_extr input inputs[dim];
