@@ -60,7 +60,7 @@ void PositionSysCamera::update()
         int posya = CAMERA_GOAL_ATK_Y - distya;
         int posyd = CAMERA_GOAL_DEF_Y + distyd;
 
-        if ((distxd * distxa < 0) || (CURRENT_DATA_READ.atkSeen && CURRENT_DATA_READ.defSeen && posya - posyd > 25)) data_valid = false;
+        if (((distxd * distxa < 0) && abs(distxd - distxa) > 10) || (CURRENT_DATA_READ.atkSeen && CURRENT_DATA_READ.defSeen && abs(posya - posyd) > 25)) data_valid = false;
 
         if (data_valid)
         {
